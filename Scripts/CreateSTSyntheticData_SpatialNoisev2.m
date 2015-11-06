@@ -1,8 +1,9 @@
-function [] = CreateSTSyntheticData_SpatialNoisev2(tile_name,lake_id,NP,run_num,SCmax,isSubset)
+function [] = CreateSTSyntheticData_SpatialNoisev2(gt_name,NP,run_num,SCmax,isSubset)
 % gt_name: name of the ground truth dynamics in which noise has to be added
 % NP: Noise Percentage (0 - 100)
 % run_num: id of the random run. Each run will be saved as a different
 % dataset
+% SCmax: maximum size of the spatial window to be used for adding spatial noise
 % isSubset: boolean variable whether noise can be added only in dynamic
 % locations (isSubset=1) or noise can be added in all the locations
 data_dir = './../Data/';
@@ -21,18 +22,13 @@ end
 
 N = length(dyn_inds);
 SC = 0:SCmax;
-mSC = mean(2*SC+1); % mean spatial autocorrelation
-mNS = mSC*mSC; % mean noise blob size
 
-% number of locations that needs to be impacted by noise
-CNL = floor(0.01*NP*N*T);
-CNL = floor(CNL/mNS);
-rand_inds = randperm(N*T,CNL);
+rand_inds = randperm(N*T);
 Nmap = GetNmap(R,C,1,R*C);
 mapStack = GT;
 
 % adding spatially correlated noise
-for i = 1:length(rand_inds);
+for i = 1:length(rand_inds)
     if sum(sum(sum(mapStack~=GT)))/(N*T)>=NP/100
         break;
     end
@@ -89,7 +85,7 @@ disp(['Total Errors Added: ' num2str(tn)])
 mapStack = reshape(mapStack,R*C,T);
 noise_data_name = [gt_name '_SNP_' num2str(NP) '_SC_' num2str(SCmax) '_RR_' num2str(run_num)];
 fname = [data_dir noise_data_name];
-save(fname,'mapStack');
+save(fname,'mapStack','R','C','T');
 
 
 

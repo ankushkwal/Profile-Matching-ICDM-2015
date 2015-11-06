@@ -1,37 +1,21 @@
-function [ers erp teil] = GetPerformanceValue_PMR(tile_name,lake_id,isSubset,base_lake_id)
-output_dir = './../Results';
-data_dir = './../Data';
+function [ers erp] = GetPerformanceValue_PMR(gt_name,input_name,isSubset)
 
-input_name = ['Stack_'  tile_name '_' base_lake_id];
-result_name = ['PMR_TWH_'  tile_name '_' lake_id];
+data_dir = './../Data/';
 
-inp = load([data_dir '/' input_name '.mat']);
-res = load([output_dir '/' result_name '_data.mat']);
+result_name = ['PMR_TWH_'  input_name];
 
+gt = load([data_dir  gt_name '.mat']);
+inp = load([data_dir input_name '.mat']);
+res = load([data_dir result_name '.mat']);
 
-fmapStack = res.mapStack;
-[N,T] = size(fmapStack);
-subStack = res.mapStack(res.dyn_inds,:);
-esubStack = subStack(res.ix,:);
-ssubStack = CalculatesmapStack(esubStack);
-
-[d fix] = sort(res.ix,'ascend');
-ssubStack = ssubStack(fix,:);
-fmapStack(res.dyn_inds,:) = ssubStack;
-
-ers = sum(sum(fmapStack~=inp.GT));
-
+GT = gt.GT;
+[R C T] = size(GT);
+GT = reshape(GT,R*C,T);
+ers = sum(sum(GT~=res.fmapStack));
 if isSubset==1
-    dyn_inds = find(sum(inp.GT==1,2)>0 & sum(inp.GT==2,2)>0);
+    dyn_inds = find(sum(inp.mapStack==1,2)>0 & sum(inp.mapStack==2,2)>0);
 else
-    dyn_inds = (1:size(inp.GT,1))';
+    dyn_inds = (1:R*C)';
 end
 N = length(dyn_inds);
 erp = ers/(N*T);
-
-teil = sum(sum(CalculatesmapStack(esubStack)~=esubStack))/(N*T);
-
-
-
-
-

@@ -32,16 +32,11 @@ mapStack = reshape(mapStack,R,C,T);
 nmask = mapStack~=GT;
 tn = sum(sum(sum(nmask)))/(N*T); % noise fraction
 tn = tn*100;
-% figure;
-% for i=1:T
-%     imagesc(mapStack(:,:,i));colormap([0 0 0.7;0 0.7 0]);
-%     pause(0.01);
-% end
 disp(['Total Errors Added: ' num2str(tn)])
 mapStack = reshape(mapStack,R*C,T);
 noise_data_name = [gt_name '_RNP_' num2str(NP) '_RR_' num2str(run_num)];
 fname = [data_dir  noise_data_name '.mat'];
-save(fname,'mapStack');
+save(fname,'mapStack','R','C','T');
 
 
 

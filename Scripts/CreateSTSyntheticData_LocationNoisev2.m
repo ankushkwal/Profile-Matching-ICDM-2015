@@ -3,7 +3,7 @@ function [] = CreateSTSyntheticData_LocationNoisev2(gt_name,NP,run_num,SCmax,TCm
 % NP: Noise Percentage (0 - 100)
 % run_num: id of the random run. Each run will be saved as a different
 % dataset
-% SCmax: maximum possible spatial autocorrelation
+% SCmax: maximum size of the window to be used for adding spatial noise
 % TCmax: maximum possible temporal autocorrelation
 % LCmax: maximum possible noise blobs in a location
 % isSubset: boolean variable whether noise can be added only in dynamic
@@ -28,10 +28,6 @@ N = length(dyn_inds);
 TC = 0:TCmax;
 SC = 0:SCmax;
 LC = 1:LCmax;
-mTC = mean(2*TC+1); % mean temporal autocorrelation
-mSC = mean(2*SC+1); % mean spatial autocorrelation
-mLC = mean(LC); % mean number of noise blobs
-mNS = mSC*mSC*mTC*mLC; % mean noise size
 
 rand_inds = randperm(N);
 Nmap = GetNmap(R,C,1,R*C);
@@ -116,7 +112,7 @@ disp(['Total Errors Added: ' num2str(tn)])
 mapStack = reshape(mapStack,R*C,T);
 noise_data_name = [gt_name '_LNP_' num2str(NP) '_SC_' num2str(SCmax) '_TC_' num2str(TCmax) '_LC_' num2str(LCmax) '_RR_' num2str(run_num)];
 fname = [data_dir noise_data_name '.mat'];
-save(fname,'mapStack');
+save(fname,'mapStack','R','C','T');
 
 
 

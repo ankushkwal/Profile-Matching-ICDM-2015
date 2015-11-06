@@ -22,11 +22,6 @@ end
 
 N = length(dyn_inds);
 TC = 0:TCmax; % possible values of temporal autocorrelation
-mTC = mean(2*TC+1); % mean temporal autocorrelation
-
-% number of locations that needs to be impacted by noise
-CNL = floor(0.01*NP*N*T);
-CNL = floor(CNL/mTC); % number of locations have been decided by using the average value of temporal autocorrelation
 rand_inds = randperm(N*T);
 mapStack = GT;
 
@@ -64,7 +59,7 @@ disp(['Total Errors Added: ' num2str(tn)])
 mapStack = reshape(mapStack,R*C,T);
 noise_data_name = [gt_name '_TNP_' num2str(NP) '_TC_' num2str(TCmax) '_RR_' num2str(run_num)];
 fname = [data_dir noise_data_name '.mat'];
-save(fname,'mapStack')
+save(fname,'mapStack','R','C','T');
 
 
 

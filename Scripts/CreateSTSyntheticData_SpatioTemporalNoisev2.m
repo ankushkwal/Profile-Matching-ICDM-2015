@@ -3,7 +3,7 @@ function [] = CreateSTSyntheticData_SpatioTemporalNoisev2(gt_name,NP,run_num,SCm
 % NP: Noise Percentage (0 - 100)
 % run_num: id of the random run. Each run will be saved as a different
 % dataset
-% SCmax: maximum value of spatial autocorrelation
+% SCmax: maximum size of window to be used for adding spatial noise
 % TCmax: maximum value of temporal autocorrelation
 % isSubset: boolean variable whether noise can be added only in dynamic
 % locations (isSubset=1) or noise can be added in all the locations
@@ -25,10 +25,6 @@ end
 N = length(dyn_inds);
 TC = 0:TCmax; % possible temporal autocorrelation values
 SC = 0:SCmax; % possible spatial autocorrelation values
-% run_num = '1';
-mTC = mean(2*TC+1); % mean temporal autocorrelation
-mSC = mean(2*SC+1); % mean spatial autocorrelation
-mNS = mSC*mSC*mTC; % mean size of the spatio-temporal noise
 
 rand_inds = randperm(N*T);
 Nmap = GetNmap(R,C,1,R*C); % creating the neighborhood map. 
@@ -95,11 +91,11 @@ for i = 1:length(rand_inds);
         
     end
 end
-
+nmask = mapStack~=GT;
 tn = sum(sum(sum(nmask)))/(N*T);clear nmask;
 tn = tn*100;
 disp(['Total Errors Added: ' num2str(tn)])
 mapStack = reshape(mapStack,R*C,T);
 noise_data_name = [gt_name '_STNP_' num2str(NP) '_SC_' num2str(SCmax) '_TC_' num2str(TCmax) '_RR_' num2str(run_num)];
 fname = [data_dir noise_data_name];
-save(fname,'mapStack');
+save(fname,'mapStack','R','C','T');

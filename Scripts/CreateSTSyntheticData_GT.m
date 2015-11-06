@@ -1,18 +1,26 @@
-% This code create synthetic ground truth
-% It takes a shape of the lake at its maximum area and a time series from
-% the user using the interactive interface and then creates a synthetic
-% lake with dynamics
+% - This code create synthetic ground truth that mimcs a lake and its variation.
+% - It takes a shape of the lake at its maximum area and a water count time series from
+%   the user using the interactive interface and then creates a synthetic
+%   lake with dynamics.
+% - Maximum extent of the lake provide the shape of the lake when the water content is the highest.
+% - Water content of a given timestep is the number of pixels labelled as water in that timestep.
+%   To mimic shrinking of a lake to a given water content, pixels from the maximum extent are removed until water
+%   content does not match the required water content. 
+% - Pixels are removed layer by layer i.e., first, pixels from the outermost layer of the extent are removed 
+%   in order to mimic drying of a lake then from the second layer and so on.
+
 
 clearvars
 close all;
 data_dir = './../Data/'; %location where the synthetic dynamics will be stored
-fname = [data_dir '/SyntheticDynamics_v1.mat']; % name of the dynamics mat file
+dsname = 'dataset2'; % name of the dataset
+fname = [data_dir '/' dsname '.mat']; % name of the dynamics mat file
 
-% Initializing parameters
-R = 100; % number of rows
-C = 100; % number of cols
+% Initializing parameters. This can be changed by the user.
+R = 50; % number of rows
+C = 50; % number of cols
 N = R*C; % total number of locations
-T = 100; % number of timesteps
+T = 50; % number of timesteps
 
 % Initiating interactive tool to take maximum extent shape as input from the user
 GT = ones(R,C)*2;
@@ -32,8 +40,9 @@ land_count = N - ones(1,T)*max_water; % initialing amount of land in different t
 SM = ones(N,T)*2; % map to take input profile from the user
 SM(N-max_water:N,:) = 1;
 f1 = figure;imagesc(SM);colormap([0 0 0.7;0 0.7 0]);title('Initialized amount of water. Draw temporal profile')
-temp = input('Draw a temporal profile such that the profile is under the blue box. Blue box marks the amount of water at the state of maximum extent. Look at the video if there is any issue. Press any key to continue...');
+uiwait(msgbox('Draw a temporal profile such that the profile is under the blue box. Blue box marks the amount of water at the state of maximum extent. Look at the video if there is any issue. Press any key to continue...'));
 h = impoly('Closed',false);
+
 
 pos = getPosition(h); % extracting the coordinates of the input points
 % Preparing land count for each timestep by interpolation points provided
@@ -71,7 +80,9 @@ hold off
 
 
 % Preparing Partial Dynamics mapping.
-% The idea here is that the water body will grow and shrink from the
+% The idea here is that the lake extents at different timesteps will be prepared
+% by removing pixels from boundary of maximum extent until the water content of the lake
+% matches with the water content of the given timestep.
 init_mask = GT;
 contourInfo = {};
 while(sum(sum(init_mask==1))>0)
@@ -114,14 +125,15 @@ for i = 1:T
 end
 GT = mapStack;
 
+% Displaying the dynamics
 figure;
 fcount = zeros(1,T);
 for i=1:T
-    imagesc(GT(:,:,i));colormap([0 0 0.7;0 0.7 0]);
+    imagesc(GT(:,:,i));colormap([0 0 0.7;0 0.7 0]);title(['Timestep: ' num2str(i)])
     fcount(i) = sum(sum(GT(:,:,i)==1));
     pause(0.1);
 end
-figure,plot(fcount);
-save(fname,'GT');
+figure,plot(fcount);title('Water Content Time Series')
+save(fname,'GT'); % saving the synthetic ground truth stack.
 
 

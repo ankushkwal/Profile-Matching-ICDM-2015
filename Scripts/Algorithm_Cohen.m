@@ -1,26 +1,19 @@
-function [] = Algorithm_Cohen(tile_name,lake_id,data_dir,output_dir)
+function [] = Algorithm_Cohen(input_name)
 
-base_name = ['CHN_'  tile_name '_' lake_id];
-load([data_dir '/Stack_' tile_name '_' lake_id '.mat']);
-% mapStack = mapStack(:,1:600);
+data_dir = './../Data/';
+output_name = ['CHN_'  input_name];
+load([data_dir input_name '.mat']);
 [N,T] = size(mapStack);
-mapStack = mapStack(:,1:min(T,600));
-[N,T] = size(mapStack);
-if sum(sum(mapStack==0))>0
-    mapStack = MajorityBasedTemporalSmoothing(mapStack,30,2);
-end
-mapStack(mapStack==0) = 1;
-dyn_inds = find(sum(mapStack==1,2)>0 & sum(mapStack==2,2)>0);
-water_inds = find(sum(mapStack==1,2)==T);
-land_inds = find(sum(mapStack==1,2)==0);
 
+% Subset locations according to their water content
+dyn_inds = find(sum(mapStack==1,2)>0 & sum(mapStack==2,2)>0); % locations that have both water and land in them
+water_inds = find(sum(mapStack==1,2)==T); % locations that have only water in them
+land_inds = find(sum(mapStack==1,2)==0); % locations that have only land in them
+
+% subsetting the stack to only dynamics locations i.e., locations that have
+% both water and land in them. Other locations will have no role in smoothing process.
 mapStack = mapStack(dyn_inds,:);
 [N,T] = size(mapStack);
-omapStack = mapStack;
-% 
-% Nmap = GetNmap(rows,cols,sW,rows*cols);
-% Weights = ones(1,T)/T;
-
 
 
 labels = mapStack;
@@ -35,7 +28,6 @@ parfor i = 1:N
     temp(U==1 & labels==1) = 0.5;
     temp(U==0 & labels==0) = 0.5;
     
-    %temp = temp.*repmat(Weights,N,1);
     temp = sum(temp,2);
     PREF(i,:) = temp';
     
@@ -60,22 +52,22 @@ for i = N:-1:1
     
 end
 
-ix = FinalOrder;
+ix = FinalOrder; % final ordering of locations
 emapStack = mapStack(ix,:);
-smapStack = CalculatesmapStack(emapStack);
+smapStack = CalculatesmapStack(emapStack); % corrected stack
 
-Errors = sum(sum(smapStack~=emapStack));
-Cors = [];
+Errors = sum(sum(smapStack~=emapStack)); % number of errors estimated by the algorithm
+[dummy fix] = sort(ix,'ascend'); % arranging the corrected stack according to original order
+smapStack = smapStack(fix,:);
 
-
-fmapStack = zeros(length(locs),T);
+% creating the complete corrected stack
+fmapStack = zeros(R*C,T);
 fmapStack(water_inds,:) = 1;
 fmapStack(land_inds,:) = 2;
-fmapStack(dyn_inds,:) = mapStack;
-mapStack = fmapStack;
+fmapStack(dyn_inds,:) = smapStack;
 
-mapStack = uint8(mapStack);
-% ix = [land_inds;dyn_inds(ix');water_inds];
-disp(['Saving data for ',base_name]);
-save([output_dir '/' base_name '_data.mat'],'mapStack','ix','Cors','Errors','land_inds','water_inds','dyn_inds');
+fmapStack = uint8(fmapStack);
+disp(['Saving data for ' output_name]);
+save([data_dir output_name '.mat'],'ix','Errors','fmapStack');
+
 

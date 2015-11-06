@@ -1,31 +1,21 @@
-function [ers erp teil] = GetPerformanceValue_CHN(tile_name,lake_id,isSubset)
-output_dir = './../Results';
-data_dir = './../Data';
+function [ers erp teil] = GetPerformanceValue_CHN(gt_name,input_name,isSubset)
 
+data_dir = './../Data/';
 
-input_name = ['Stack_'  tile_name '_' lake_id];
-result_name = ['CHN_'  tile_name '_' lake_id];
+result_name = ['CHN_'  input_name];
 
-inp = load([data_dir '/' input_name '.mat']);
-res = load([output_dir '/' result_name '_data.mat']);
+gt = load([data_dir  gt_name '.mat']);
+inp = load([data_dir input_name '.mat']);
+res = load([data_dir result_name '.mat']);
 
-
-fmapStack = res.mapStack;
-[N,T] = size(fmapStack);
-subStack = res.mapStack(res.dyn_inds,:);
-esubStack = subStack(res.ix,:);
-ssubStack = CalculatesmapStack(esubStack);
-
-[d fix] = sort(res.ix,'ascend');
-ssubStack = ssubStack(fix,:);
-fmapStack(res.dyn_inds,:) = ssubStack;
-
-ers = sum(sum(fmapStack~=inp.GT));
+GT = gt.GT;
+[R C T] = size(GT);
+GT = reshape(GT,R*C,T);
+ers = sum(sum(GT~=res.fmapStack));
 if isSubset==1
-    dyn_inds = find(sum(inp.GT==1,2)>0 & sum(inp.GT==2,2)>0);
+    dyn_inds = find(sum(inp.mapStack==1,2)>0 & sum(inp.mapStack==2,2)>0);
 else
-    dyn_inds = (1:size(inp.GT,1))';
+    dyn_inds = (1:R*C)';
 end
 N = length(dyn_inds);
 erp = ers/(N*T);
-teil = sum(sum(CalculatesmapStack(esubStack)~=esubStack))/(N*T);
