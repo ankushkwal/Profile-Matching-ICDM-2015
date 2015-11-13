@@ -1,9 +1,9 @@
 clearvars
 close all
-gt_name = 'dataset2'
+gt_name = 'dataset1';
 isSubset = 1;
-NParr = [1 5 10]; % array of value of noise percentages to be added
-run_num_arr = 1:3; % number of random runs
+NParr = [1 5 10 20]; % array of value of noise percentages to be added
+run_num_arr = 1:5; % number of random runs
 SCmax = 3;
 TCmax = 5;
 LCmax = 10;
